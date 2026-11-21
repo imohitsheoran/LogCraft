@@ -1,0 +1,14 @@
+.env
+.venv/
+.tools/
+__pycache__/
+.pytest_cache/
+node_modules/
+dist/
+*.py[cod]
+*.db
+LogiCraft-P12.zip
+.coverage
+coverage.xml
+uploads/*
+!uploads/.gitkeep

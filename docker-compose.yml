@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-logicraft}
+      MYSQL_USER: ${MYSQL_USER:-logicraft}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-logicraft_demo}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change_me}
+    ports: ["3306:3306"]
+    volumes: ["mysql_data:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-logicraft}:${MYSQL_PASSWORD:-logicraft_demo}@db:3306/${MYSQL_DATABASE:-logicraft}
+      JWT_SECRET: ${JWT_SECRET:-local-demo-key-change-this}
+    ports: ["8000:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    depends_on:
+      db: {condition: service_healthy}
+  frontend:
+    build: ./frontend
+    ports: ["5173:5173"]
+    environment: {VITE_API_URL: http://localhost:8000/api}
+    depends_on:
+      backend: {condition: service_healthy}
+volumes:
+  mysql_data:
